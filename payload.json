@@ -1,0 +1,10 @@
+{
+    "attachments": [
+        {
+            "color": "warning",
+            "title": "There's somebody at the door",
+            "text": "You should probably get that.",
+            "fallback": "Somebody's ringing at the office door!"
+        }
+    ]
+}

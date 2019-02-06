@@ -7,13 +7,13 @@ from configparser import ConfigParser
 from rpi_rf import RFDevice
 import sdnotify
 
-LOGGING_FORMAT = '%(asctime)-15s [%(levelname)s] %(message)s'
+LOGGING_FORMAT = '%(name)s %(asctime)-15s [%(levelname)s] %(message)s'
 logging.basicConfig(format=LOGGING_FORMAT)
 
 HERE = path.dirname(path.realpath(__file__))
 config = ConfigParser()
 config.read(path.join(HERE, 'config.ini'))
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(name='doorelf')
 logger.setLevel(config['default'].get('loglevel', 'INFO').upper())
 
 RECEIVE_PIN = config['hardware'].getint('gpio_pin', 18)

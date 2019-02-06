@@ -1,0 +1,16 @@
+[Unit]
+Description=Doorelf, the doorbell Slack integration
+Documentation=https://github.com/janw/doorelf
+After=network-online.target
+
+[Service]
+User=pi
+Type=notify
+Environment=PYTHONUNBUFFERED=true
+ExecStart=/usr/bin/python3 /home/pi/doorelf/daemon.py
+WorkingDirectory=/home/pi/doorelf
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

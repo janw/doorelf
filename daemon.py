@@ -96,7 +96,7 @@ def main():
         sys.exit(0)
     except Exception as ctx:
         logger.exception("Unhandled exception during execution.", exc_info=True)
-        systemd.notify("STATUS=An exception occured: {}\n ERRNO=1".format(ctx.message))
+        systemd.notify("STATUS=An exception occured.\nERRNO=1")
         rfdevice.cleanup()
         sys.exit(1)
 

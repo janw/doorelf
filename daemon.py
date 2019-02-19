@@ -94,10 +94,10 @@ def main():
         systemd.notify("STOPPING=1")
         rfdevice.cleanup()
         sys.exit(0)
-    except Exception as ctx:
+    except Exception:
+        rfdevice.cleanup()
         logger.exception("Unhandled exception during execution.", exc_info=True)
         systemd.notify("STATUS=An exception occured.\nERRNO=1")
-        rfdevice.cleanup()
         sys.exit(1)
 
 

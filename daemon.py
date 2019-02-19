@@ -22,6 +22,7 @@ DOORBELL_CODE = config['hardware'].get('doorbell_code', '11101111')
 SLACK_WEBHOOK_URL = config['notifier']['slack_webhook_url']
 PAYLOAD_FILE = config['notifier'].get('payload_file', './payload.json')
 SLEEP_NOTIFIER_SEC = config['notifier'].getint('sleep_notifier_sec', 4)
+RETRY_DELAY_SEC = config['notifier'].getint('retry_delay_sec', 3)
 
 
 with open(PAYLOAD_FILE) as payload_file:
@@ -30,11 +31,34 @@ with open(PAYLOAD_FILE) as payload_file:
 systemd = sdnotify.SystemdNotifier()
 
 
+class RetriesExhaustedError(ConnectionError):
+    pass
+
+
 def send_notification():
-    response = requests.post(SLACK_WEBHOOK_URL, data={'payload': payload})
-    logger.debug("Got response {} from Slack API".format(response.status_code))
-    if response.status_code != 200 :
-        logger.error("Failed to notify Slack: error {}".format(response.status_code))
+    retries = 2
+    trial = 0
+
+    while trial <= retries:
+        try:
+            response = requests.post(SLACK_WEBHOOK_URL, data={'payload': payload})
+            logger.debug("Got response {} from Slack API".format(response.status_code))
+            if response.status_code == 200:
+                return
+            logger.error("Failed to notify Slack: code {}".format(response.status_code))
+
+        except ConnectionError:
+            logger.error(
+                "ConnectionError notifying Slack. Trying again in {} sec".format(
+                    RETRY_DELAY_SEC
+                ),
+                exc_info=True
+            )
+            systemd.notify("WATCHDOG=1")
+            time.sleep(RETRY_DELAY_SEC)
+        trial += 1
+
+    raise RetriesExhaustedError("Exhausted maximum number of retries")
 
 
 def listener(rfdevice):
@@ -56,7 +80,8 @@ def listener(rfdevice):
                 time.sleep(SLEEP_NOTIFIER_SEC)
                 logger.debug("Continuing listening.")
             timestamp = rfdevice.rx_code_timestamp
-        time.sleep(0.01)
+        systemd.notify("WATCHDOG=1")
+        time.sleep(0.05)
 
 
 def main():

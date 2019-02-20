@@ -3,6 +3,7 @@ import sys
 from os import path
 import logging
 import requests
+from requests.exceptions import RequestException
 from configparser import ConfigParser
 from rpi_rf import RFDevice
 import sdnotify
@@ -47,7 +48,7 @@ def send_notification():
                 return
             logger.error("Failed to notify Slack: code {}".format(response.status_code))
 
-        except ConnectionError:
+        except (RequestException, ):
             logger.error(
                 "ConnectionError notifying Slack. Trying again in {} sec".format(
                     RETRY_DELAY_SEC
